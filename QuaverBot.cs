@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Discord;
 using Discord.WebSocket;
 using QuaverBot.Database;
+using QuaverBot.Modules;
 
 namespace QuaverBot;
 
@@ -31,6 +32,8 @@ public class QuaverBot
         Client = new DiscordSocketClient(clientConfig);
         Client.Log += Logger.Log;
         CommandHandler = new(Client);
+
+        Client.UserJoined += Mute.OnUserJoined;
     }
 
     public async Task MainAsync()

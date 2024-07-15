@@ -180,4 +180,13 @@ public class Mute : InteractionModuleBase<SocketInteractionContext>
             _ => $"{time.TotalSeconds} second{(time.TotalSeconds > 1 ? "s" : "")}"
         };
     }
+
+    public static async Task OnUserJoined(SocketGuildUser user)
+    {
+        var mute = DatabaseManager.Connection?.Find<DatabaseMute>(m => m.DiscordId == user.Id);
+
+        if (mute == null) return;
+
+        await user.AddRoleAsync(QuaverBot.Config.MutedRole);
+    }
 }
