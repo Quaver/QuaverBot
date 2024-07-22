@@ -36,7 +36,7 @@ public class CommandHandler
         {
             Task.Run(RegisterCommands);
 
-            Mute.CheckMutedTimer = new System.Timers.Timer(1000 * 15);
+            Mute.CheckMutedTimer = new System.Timers.Timer(1000 * 60 * 15); // 15 minutes
             Mute.CheckMutedTimer.Elapsed += (s, e) => { Mute.CheckMuted(Client); };
             Mute.CheckMutedTimer.AutoReset = true;
             Mute.CheckMutedTimer.Start();
