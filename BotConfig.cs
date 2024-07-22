@@ -1,5 +1,4 @@
 using System;
-using System.Text;
 using Discord;
 using Newtonsoft.Json;
 
@@ -18,14 +17,31 @@ public struct BotConfig
     public string MacroPrefix;
     public ulong MutedRole;
     public ulong[] ModRoles;
+    public CleanConfig Clean;
 
     public static BotConfig Default => new BotConfig
     {
         Token = "YOUR_TOKEN",
         LogLevel = LogSeverity.Info,
         MacroPrefix = "!",
-        ModRoles = Array.Empty<ulong>()
+        ModRoles = Array.Empty<ulong>(),
+        Clean = new CleanConfig
+        {
+            Channels = Array.Empty<ulong>(),
+            IgnoreMessages = Array.Empty<ulong>(),
+            IgnoreUsers = Array.Empty<ulong>(),
+            IgnoreRoles = Array.Empty<ulong>(),
+            AfterHours = 6
+        }
     };
+}
+public struct CleanConfig
+{
+    public ulong[] Channels;
+    public ulong[] IgnoreMessages;
+    public ulong[] IgnoreUsers;
+    public ulong[] IgnoreRoles;
+    public int AfterHours;
 }
 
 public class LogSeverityConverter : JsonConverter

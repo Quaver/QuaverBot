@@ -6,7 +6,6 @@ using System.Timers;
 using Discord;
 using Discord.Interactions;
 using Discord.WebSocket;
-using QuaverBot;
 using QuaverBot.Database;
 
 namespace QuaverBot.Modules;
@@ -136,9 +135,17 @@ public class Mute : InteractionModuleBase<SocketInteractionContext>
         await RespondAsync($"Unmuted {user.Username}{(reason != null ? $" for {reason}" : "")}");
     }
 
-    public static Timer? CheckMutedTimer;
+    public static void InitCheckMuted(DiscordSocketClient client)
+    {
+        CheckMutedTimer = new Timer(1000 * 60 * 15); // 15 minutes
+        CheckMutedTimer.Elapsed += (s, e) => { CheckMuted(client); };
+        CheckMutedTimer.AutoReset = true;
+        CheckMutedTimer.Start();
+    }
 
-    public static async void CheckMuted(DiscordSocketClient client)
+    private static Timer? CheckMutedTimer;
+
+    private static async void CheckMuted(DiscordSocketClient client)
     {
         var mutes = DatabaseManager.Connection?.Table<DatabaseMute>().ToList();
 
