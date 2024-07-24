@@ -96,8 +96,8 @@ public class CommandHandler
                     break;
                 case InteractionCommandError.Exception:
                     var exception = ((ExecuteResult)result).Exception;
-                    await context.Interaction.RespondAsync($"Command exception: {result.ErrorReason}\n" +
-                        $"```json\n{JsonConvert.SerializeObject(exception.InnerException, Formatting.Indented)}\n```");
+                    Logger.Error(result.ErrorReason, this, exception.InnerException);
+                    await context.Interaction.RespondAsync($"Command exception");
                     break;
                 case InteractionCommandError.Unsuccessful:
                     await context.Interaction.RespondAsync("Command could not be executed");
