@@ -11,13 +11,12 @@ public struct BotConfig
     [JsonConverter(typeof(LogSeverityConverter))]
     public LogSeverity LogLevel;
     public ulong GuildId;
-    public ulong MessageLogsChannelId;
-    public ulong StorageChannelId;
-    public ulong LogsChannelId;
+    public ulong ModlogChannelId;
     public string MacroPrefix;
     public ulong MutedRole;
     public ulong[] ModRoles;
     public CleanConfig Clean;
+    public LogConfig Log;
 
     public static BotConfig Default => new BotConfig
     {
@@ -31,10 +30,16 @@ public struct BotConfig
             IgnoreMessages = Array.Empty<ulong>(),
             IgnoreUsers = Array.Empty<ulong>(),
             IgnoreRoles = Array.Empty<ulong>(),
-            AfterHours = 6
-        }
+            AfterHours = 6,
+        },
+        Log = new LogConfig
+        {
+            CacheAttachments = true,
+            MaxCacheSize = 1024 * 1024 * 1024, // 1 GiB
+        },
     };
 }
+
 public struct CleanConfig
 {
     public ulong[] Channels;
@@ -42,6 +47,13 @@ public struct CleanConfig
     public ulong[] IgnoreUsers;
     public ulong[] IgnoreRoles;
     public int AfterHours;
+}
+
+public struct LogConfig
+{
+    public ulong ChannelId;
+    public bool CacheAttachments;
+    public long MaxCacheSize;
 }
 
 public class LogSeverityConverter : JsonConverter

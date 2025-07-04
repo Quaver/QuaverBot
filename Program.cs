@@ -29,6 +29,17 @@ public class Program
         CultureInfo.DefaultThreadCurrentCulture = CultureInfo.InvariantCulture;
         CultureInfo.DefaultThreadCurrentUICulture = CultureInfo.InvariantCulture;
 
-        new QuaverBot(config).MainAsync().GetAwaiter().GetResult();
+    restart:
+        try
+        {
+            new QuaverBot(config).MainAsync().GetAwaiter().GetResult();
+        }
+        catch
+        {
+            // "gotos are illegal": womp womp
+            // simply uncrash yourself
+            goto restart;
+        }
+
     }
 }

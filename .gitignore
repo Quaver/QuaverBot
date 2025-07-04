@@ -1,5 +1,8 @@
+.vscode/settings.json
+
 [Bb]in/
 [Oo]bj/
 
 config.json
 *.db
+attachments/

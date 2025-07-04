@@ -38,6 +38,7 @@ public class CommandHandler
 
             Mute.InitCheckMuted(Client);
             Clean.InitClean(Client);
+            Logging.Init();
 
             return Task.CompletedTask;
         };
