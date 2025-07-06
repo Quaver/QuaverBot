@@ -141,6 +141,8 @@ public static class Logging
         if (!m1.HasValue) return;
         if (m2.Author.IsBot) return;
 
+        if (m1.Value.Content == m2.Content) return;
+
         if (client.GetChannel(QuaverBot.Config.Log.ChannelId) is not ITextChannel logsChannel)
         {
             Logger.Error("Logs channel not found.");
