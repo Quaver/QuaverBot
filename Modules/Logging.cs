@@ -6,6 +6,7 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using System.Timers;
 using Discord;
+using Discord.Rest;
 using Discord.WebSocket;
 using QuaverBot.Database;
 
@@ -15,13 +16,15 @@ public static class Logging
 {
     const string ATTACHMENT_DIR = "attachments";
 
-    public static void Init()
+    public static async void Init(DiscordSocketClient client)
     {
         Directory.CreateDirectory(ATTACHMENT_DIR);
 
         CleanupTimer = new Timer(1000 * 60 * 15); // 15m
         CleanupTimer.Elapsed += (sender, args) => CleanupCache();
         CleanupTimer.Start();
+
+        lastAuditId = (await client.GetGuild(QuaverBot.Config.GuildId).GetAuditLogsAsync(1).FlattenAsync()).First().Id;
     }
 
     private static HttpClient HttpClient { get; } = new();
@@ -67,6 +70,8 @@ public static class Logging
         }
     }
 
+    private static ulong? lastAuditId = null;
+
     public static async Task OnMessageDeleted(Cacheable<IMessage, ulong> message, Cacheable<IMessageChannel, ulong> channel, DiscordSocketClient client)
     {
         if (!message.HasValue) return;
@@ -99,12 +104,26 @@ public static class Logging
         {
             Title = "Message Deleted",
             Color = Color.Red,
-            Timestamp = DateTimeOffset.Now
+            Timestamp = message.Value.Timestamp
         };
 
         embed.WithAuthor(message.Value.Author);
         embed.WithDescription(message.Value.Content);
         embed.AddField("Channel", $"<#{channel.Id}>", false);
+
+        var audit = await client.GetGuild(QuaverBot.Config.GuildId).GetAuditLogsAsync(10, null, null, null, ActionType.MessageDeleted, lastAuditId).FlattenAsync();
+        audit = audit.Where(x =>
+            // x.CreatedAt > DateTimeOffset.Now - TimeSpan.FromSeconds(5) &&
+            x.Data is MessageDeleteAuditLogData data &&
+            data.ChannelId == message.Value.Channel.Id &&
+            data.Target.Id == message.Value.Author.Id
+        ).DistinctBy(x => x.User.Id).OrderBy(x => x.CreatedAt);
+
+        if (audit.Any())
+        {
+            lastAuditId = audit.First().Id;
+            embed.WithFooter(audit.First().User.Username, audit.First().User.GetAvatarUrl());
+        }
 
         if (attachments.Count == 0 && attachmentsField == "")
         {
@@ -115,6 +134,37 @@ public static class Logging
             embed.AddField("Attachments", attachmentsField, false);
             await logsChannel.SendFilesAsync(attachments, embed: embed.Build());
         }
+    }
+
+    public static async Task OnMessageUpdated(Cacheable<IMessage, ulong> m1, SocketMessage m2, ISocketMessageChannel channel, DiscordSocketClient client)
+    {
+        if (!m1.HasValue) return;
+        if (m2.Author.IsBot) return;
+
+        if (client.GetChannel(QuaverBot.Config.Log.ChannelId) is not ITextChannel logsChannel)
+        {
+            Logger.Error("Logs channel not found.");
+            return;
+        }
+
+        var embed = new EmbedBuilder
+        {
+            Title = "Message Edited",
+            Color = Color.LightOrange,
+            Timestamp = m2.EditedTimestamp
+        };
+
+        embed.WithAuthor(m2.Author);
+        embed.WithDescription(
+            "```\n" +
+            m1.Value.Content.Replace('`', '\'') +
+            "\n```\n```\n" +
+            m2.Content.Replace('`', '\'') +
+            "\n```"
+        );
+        embed.AddField("Channel", $"<#{channel.Id}>", false);
+
+        await logsChannel.SendMessageAsync(embed: embed.Build());
     }
 
     public static async Task LogMute(ulong user, ulong mod, string? reason, TimeSpan? duration, DiscordSocketClient client)

@@ -38,7 +38,7 @@ public class CommandHandler
 
             Mute.InitCheckMuted(Client);
             Clean.InitClean(Client);
-            Logging.Init();
+            Logging.Init(Client);
 
             return Task.CompletedTask;
         };
@@ -49,6 +49,7 @@ public class CommandHandler
         Client.MessageReceived += Macros.OnMessageReceived;
         Client.MessageReceived += (m) => Logging.OnMessageReceived(m, Client);
         Client.MessageDeleted += (m, c) => Logging.OnMessageDeleted(m, c, Client);
+        Client.MessageUpdated += (m1, m2, c) => Logging.OnMessageUpdated(m1, m2, c, Client);
     }
 
     public async Task RegisterCommands()
